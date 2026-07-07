@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Pan a Descongelar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Control Pan">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2921/2921829.png">
+
+    <link class="manifest" id="manifest-placeholder">
+    <style>
+        input[type="number"] { -webkit-appearance: none; -moz-appearance: textfield; }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.015em; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] min-h-screen text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm transition-all duration-300">
+            <div class="flex items-center gap-4">
+                <div class="bg-slate-900 text-white p-3.5 rounded-2xl text-2xl shadow-lg shadow-slate-900/10 flex items-center justify-center">
+                    🍞
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
+                        Control de Pan a Descongelar
+                    </h1>
+                </div>
+            </div>
+            <button onclick="guardarRegistro()" 
+                    class="w-full md:w-auto bg-slate-950 hover:bg-slate-800 active:scale-[0.98] transition-all text-white px-7 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-slate-950/10 text-sm tracking-wide">
+                <i class="fas fa-save text-base opacity-90"></i>
+                GUARDAR REGISTRO DIARIO
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 shadow-sm">
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5 mb-6">
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-400 text-lg"><i class="fas fa-calculator"></i></span>
+                            <h2 class="text-xl font-bold text-slate-900">Calculadora Diaria</h2>
+                        </div>
+                        <div class="flex items-center bg-slate-50 border border-slate-200/60 px-4 py-2 rounded-2xl gap-3 w-full sm:w-auto shadow-inner">
+                            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 whitespace-nowrap">Fecha de Trabajo:</label>
+                            <input type="date" id="fecha" class="w-full sm:w-auto bg-white px-3 py-1.5 rounded-xl border border-slate-200 font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all text-sm shadow-sm">
+                        </div>
+                    </div>
+
+                    <div id="tabla-calculadora" class="space-y-5"></div>
+                </div>
+            </div>
+
+            <div class="space-y-6 lg:sticky lg:top-6">
+                
+                <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4 gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-slate-400 text-base"><i class="fas fa-history"></i></span>
+                            <h2 class="text-lg font-bold text-slate-900">Historial Reciente</h2>
+                        </div>
+                        <button onclick="exportarAPDF()" class="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-md transition-all active:scale-95">
+                            <i class="fas fa-file-pdf text-red-400"></i> Exportar PDF
+                        </button>
+                    </div>
+                    <div id="historial-lista" class="space-y-4 max-h-[55vh] overflow-auto pr-1"></div>
+                </div>
+
+                <div id="resumen-guardado" class="hidden bg-emerald-50 border border-emerald-200 rounded-3xl p-6 shadow-sm shadow-emerald-950/5 animate-fadeIn">
+                    <h3 class="font-bold text-emerald-950 flex items-center gap-2 mb-4 text-sm">
+                        <i class="fas fa-check-circle text-emerald-600 text-lg"></i> Registro Guardado Correctamente
+                    </h3>
+                    <div id="contenido-resumen" class="space-y-2.5"></div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // INYECCIÓN DINÁMICA DEL MANIFEST Y SERVICE WORKER AUTO-GENERADO
+        const manifestJson = {
+            "name": "Control de Pan",
+            "short_name": "Pan",
+            "start_url": window.location.href,
+            "display": "standalone",
+            "background_color": "#f8fafc",
+            "theme_color": "#0f172a",
+            "icons": [{
+                "src": "https://cdn-icons-png.flaticon.com/512/2921/2921829.png",
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any maskable"
+            }, {
+                "src": "https://cdn-icons-png.flaticon.com/512/2921/2921829.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable"
+            }]
+        };
+        document.getElementById('manifest-placeholder').setAttribute('href', 'data:application/json;base64,' + btoa(JSON.stringify(manifestJson)));
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (e) => self.skipWaiting());
+                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+                self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Error', err));
+        }
+
+        let productos = [
+            { id: "muffin", nombre: "PAN MUFFIN", porEmpaque: 84, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba 7 bolsas de 12 unidades", empaqueNombre: "jabas", tipoConvertidor: "bolsa", cantConvertidor: 12 },
+            { id: "tortilla", nombre: "TORTILLA 8", porEmpaque: 12, meta: 0, inicial: 0, etiquetaEmpaque: "Bolsa 12 unidades", empaqueNombre: "bolsas", tipoConvertidor: "bolsa", cantConvertidor: 12 },
+            { id: "regular", nombre: "PAN REGULAR", porEmpaque: 60, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 60 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "jaba", cantConvertidor: 30 },
+            { id: "cuarto", nombre: "PAN DE CUARTO", porEmpaque: 60, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 60 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "jaba", cantConvertidor: 30 },
+            { id: "bigmac", nombre: "PAN BIGMAC", porEmpaque: 30, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Individual 30 unidades", empaqueNombre: "jabas individuales", tipoConvertidor: "jaba", cantConvertidor: 30 },
+            { id: "magnifica", nombre: "PAN MAGNÍFICA DE RES", porEmpaque: 50, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 50 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "jaba", cantConvertidor: 25 },
+            { id: "artesanal", nombre: "PAN ARTESANAL", porEmpaque: 96, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 96 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "bolsa", cantConvertidor: 12 },
+            { id: "bollo", nombre: "PAN BOLLO", porEmpaque: 16, meta: 0, inicial: 0, etiquetaEmpaque: "Bolsa 16 unidades", empaqueNombre: "bolsas", tipoConvertidor: "bolsa", cantConvertidor: 16 },
+            { id: "papa", nombre: "PAN DE PAPA", porEmpaque: 60, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 60 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "jaba", cantConvertidor: 30 }
+        ];
+
+        function calcularPaquetes(amount, porEmpaque, empaqueNombre) {
+            if (amount <= 0) return `0 ${empaqueNombre}`;
+            const paquetes = Math.ceil(amount / porEmpaque);
+            return `${paquetes} ${empaqueNombre}`;
+        }
+
+        function obtenerTextoExceso(excesoUnidades, prod) {
+            if (prod.id === "muffin") {
+                let unidadesRestantes = excesoUnidades;
+                const jabasCompletas = Math.floor(unidadesRestantes / 84);
+                unidadesRestantes %= 84;
+                const bolsasCompletas = Math.floor(unidadesRestantes / 12);
+                unidadesRestantes %= 12;
+                const textoJaba = jabasCompletas === 1 ? "1 jaba" : `${jabasCompletas} jabas`;
+                const textoBolsa = bolsasCompletas === 1 ? "1 bolsa" : `${bolsasCompletas} bolsas`;
+                return `${textoJaba}, ${textoBolsa} y ${unidadesRestantes} unds`;
+            }
+            const nombreEmpaque = prod.tipoConvertidor === "bolsa" ? "bolsa" : "jaba";
+            const nombreEmpaquePlural = prod.tipoConvertidor === "bolsa" ? "bolsas" : "jabas";
+            const empaquesCompletos = Math.floor(excesoUnidades / prod.cantConvertidor);
+            const unidadesSueltas = excesoUnidades % prod.cantConvertidor;
+            const textoEmpaque = empaquesCompletos === 1 ? `1 ${nombreEmpaque}` : `${empaquesCompletos} ${nombreEmpaquePlural}`;
+            return `${textoEmpaque} y ${unidadesSueltas} unds`;
+        }
+
+        function generarCampos() {
+            const container = document.getElementById('tabla-calculadora');
+            container.innerHTML = '';
+            productos.forEach((prod, index) => {
+                let sacarHoy = 0;
+                let paquetesHoy = calcularPaquetes(0, prod.porEmpaque, prod.empaqueNombre);
+                let finalHoy = prod.inicial;
+                let advertenciaHTML = "";
+
+                if (prod.inicial > prod.meta) {
+                    const exceso = prod.inicial - prod.meta;
+                    const desgloseExceso = obtenerTextoExceso(exceso, prod);
+                    advertenciaHTML = `<div class="text-[11px] font-bold text-rose-400 mt-1"><i class="fas fa-exclamation-triangle"></i> Exceso: ${desgloseExceso}</div>`;
+                } else {
+                    const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
+                    const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
+                    sacarHoy = empaquesNecesarios * prod.porEmpaque;
+                    paquetesHoy = calcularPaquetes(sacarHoy, prod.porEmpaque, prod.empaqueNombre);
+                    finalHoy = Math.max(0, prod.inicial + sacarHoy);
+                    advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-xs font-bold text-amber-400/90 mt-1">${paquetesHoy}</div>`;
+                }
+
+                const div = document.createElement('div');
+                div.className = "border border-slate-200/90 bg-white rounded-2xl p-5 hover:border-slate-300 hover:shadow-md transition-all duration-200 group";
+                let textoBoton = prod.tipoConvertidor === "bolsa" ? `<i class="fas fa-calculator text-[10px]"></i> Convertir Bolsas` : `<i class="fas fa-box text-[10px]"></i> Convertir Jabas`;
+
+                div.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
+                        <span class="font-extrabold text-slate-800 tracking-tight text-base group-hover:text-slate-900 transition-colors">${prod.nombre}</span>
+                        <span class="text-[10px] bg-slate-50 text-slate-500 font-bold px-3 py-1 rounded-xl border border-slate-200/50 uppercase tracking-wider">${prod.etiquetaEmpaque}</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5 pl-1">Cantidad Meta</label>
+                                <input type="number" id="meta-input-${prod.id}" value="${prod.meta}" oninput="actualizarValores(${index}, 'meta', this.value)" class="w-full text-lg font-bold bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:bg-white focus:border-slate-950 focus:ring-1 focus:ring-slate-955 focus:outline-none transition-all shadow-inner text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5 pl-1">Inventario Inicial (Unidades)</label>
+                                <input type="number" id="inicial-input-${prod.id}" value="${prod.inicial}" oninput="actualizarValores(${index}, 'inicial', this.value)" class="w-full text-lg font-bold bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:bg-white focus:border-slate-950 focus:ring-1 focus:ring-slate-955 focus:outline-none transition-all shadow-inner text-slate-800">
+                            </div>
+                            <button onclick="ejecutarConvertidor(${index})" class="w-full text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-2.5 px-3 rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-1.5 active:scale-[0.99]">
+                                ${textoBoton}
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
+                            <div class="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md flex flex-col justify-center items-center min-h-[120px]">
+                                <div class="text-slate-400 font-extrabold text-[10px] uppercase tracking-wider mb-1">A Descongelar</div>
+                                <div id="sacarHoy-val-${prod.id}" class="text-3xl font-black tracking-tight text-white">${sacarHoy}</div>
+                                <div id="wrapper-advertencia-${prod.id}" class="w-full">${advertenciaHTML}</div>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center items-center min-h-[120px] shadow-inner">
+                                <div class="text-slate-400 font-extrabold text-[10px] uppercase tracking-wider mb-1">Total Esperado</div>
+                                <div id="final-val-${prod.id}" class="text-3xl font-black tracking-tight text-slate-900">${finalHoy}</div>
+                                <div class="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">Unidades Finales</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function ejecutarConvertidor(index) {
+            const prod = productos[index];
+            const tipoText = prod.tipoConvertidor === "bolsa" ? "BOLSAS completas" : "JABAS completas";
+            const empaqueText = prod.tipoConvertidor === "bolsa" ? "bolsa" : "jaba";
+            const cantEmpaques = prompt(`¿Cuántas ${tipoText} tienes de ${prod.nombre}? (Cada ${empaqueText} trae ${prod.cantConvertidor} unidades)`);
+            if (cantEmpaques !== null && cantEmpaques !== "") {
+                const numEmpaques = parseInt(cantEmpaques) || 0;
+                const unidadesNuevas = numEmpaques * prod.cantConvertidor;
+                const valorActualInput = parseInt(document.getElementById(`inicial-input-${prod.id}`).value) || 0;
+                const nuevoTotalUnidades = valorActualInput + unidadesNuevas;
+                document.getElementById(`inicial-input-${prod.id}`).value = nuevoTotalUnidades;
+                actualizarValores(index, 'inicial', nuevoTotalUnidades);
+            }
+        }
+
+        function actualizarValores(index, campo, valor) {
+            const prod = productos[index];
+            prod[campo] = parseInt(valor) || 0;
+            let sacarHoy = 0;
+            let paquetesHoy = calcularPaquetes(0, prod.porEmpaque, prod.empaqueNombre);
+            let finalHoy = prod.inicial;
+            let advertenciaHTML = "";
+
+            if (prod.inicial > prod.meta) {
+                const exceso = prod.inicial - prod.meta;
+                const desgloseExceso = obtenerTextoExceso(exceso, prod);
+                advertenciaHTML = `<div class="text-[11px] font-bold text-rose-400 mt-1"><i class="fas fa-exclamation-triangle"></i> Exceso: ${desgloseExceso}</div>`;
+            } else {
+                const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
+                const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
+                sacarHoy = empaquesNecesarios * prod.porEmpaque;
+                paquetesHoy = calcularPaquetes(sacarHoy, prod.porEmpaque, prod.empaqueNombre);
+                finalHoy = Math.max(0, prod.inicial + sacarHoy);
+                advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-xs font-bold text-amber-400/90 mt-1">${paquetesHoy}</div>`;
+            }
+
+            document.getElementById(`sacarHoy-val-${prod.id}`).innerText = sacarHoy;
+            document.getElementById(`wrapper-advertencia-${prod.id}`).innerHTML = advertenciaHTML;
+            document.getElementById(`final-val-${prod.id}`).innerText = finalHoy;
+        }
+
+        function guardarRegistro() {
+            const fechaInput = document.getElementById('fecha').value;
+            if (!fechaInput) return alert("Por favor, ingresa una fecha válida");
+            const fechaObj = new Date(fechaInput + "T12:00:00");
+            const fechaKey = `${String(fechaObj.getDate()).padStart(2,'0')}/${String(fechaObj.getMonth()+1).padStart(2,'0')}/${fechaObj.getFullYear()}`;
+            let historialAgrupado = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
+            let itemsDia = [];
+            let datosAgregados = false;
+            let resumenHTML = `<p class="font-extrabold text-emerald-950 text-xs border-b border-emerald-200 pb-2.5 mb-3 uppercase tracking-wider flex items-center gap-1.5"><i class="far fa-calendar-alt"></i> TRABAJO DEL: ${fechaKey}</p>`;
+
+            productos.forEach(prod => {
+                if(prod.meta > 0 || prod.inicial > 0) {
+                    let sacarHoy = 0;
+                    let paquetesDesglose = calcularPaquetes(0, prod.porEmpaque, prod.empaqueNombre);
+                    let finalHoy = prod.inicial;
+                    let esExceso = false;
+                    let desgloseExcesoTexto = "";
+
+                    if (prod.inicial > prod.meta) {
+                        esExceso = true;
+                        const exceso = prod.inicial - prod.meta;
+                        desgloseExcesoTexto = obtenerTextoExceso(exceso, prod);
+                        paquetesDesglose = `0 ${prod.empaqueNombre}`;
+                    } else {
+                        const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
+                        const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
+                        sacarHoy = empaquesNecesarios * prod.porEmpaque;
+                        paquetesDesglose = calcularPaquetes(sacarHoy, prod.porEmpaque, prod.empaqueNombre);
+                        finalHoy = Math.max(0, prod.inicial + sacarHoy);
+                    }
+
+                    itemsDia.push({
+                        producto: prod.nombre, meta: prod.meta, inicial: prod.inicial, sacarHoy: sacarHoy,
+                        paquetesDesglose: paquetesDesglose, finalHoy: finalHoy, etiquetaEmpaque: prod.etiquetaEmpaque,
+                        esExceso: esExceso, desgloseExcesoTexto: desgloseExcesoTexto
+                    });
+                    datosAgregados = true;
+                    const columnaAlertaHTML = esExceso ? 
+                        `<div class="text-right"><span class="text-rose-600 font-extrabold block text-xs">⚠️ Exceso</span><span class="text-[9px] text-rose-500 font-bold block leading-tight mt-0.5">${desgloseExcesoTexto}</span></div>` : 
+                        `<div class="text-right"><span class="text-emerald-600 font-extrabold block text-xs">✅ OK</span><span class="text-[9px] text-emerald-500 font-medium block mt-0.5">Inventario ideal</span></div>`;
+
+                    resumenHTML += `
+                        <div class="bg-white/90 p-3 rounded-xl border border-emerald-200 mb-2 shadow-sm grid grid-cols-3 gap-2 text-xs items-center">
+                            <div>
+                                <div class="font-bold text-slate-900">${prod.nombre}</div>
+                                <div class="text-[9px] text-slate-400 font-bold tracking-tight mt-0.5">${prod.etiquetaEmpaque}</div>
+                            </div>
+                            <div class="text-center bg-slate-50 border border-slate-100 p-1.5 rounded-lg shadow-inner">
+                                <span class="text-slate-400 font-extrabold block text-[8px] uppercase tracking-wider">Sacar</span>
+                                <span class="font-black text-slate-800">${sacarHoy} <span class="text-[9px] font-medium text-slate-400">(${paquetesDesglose.split(' ')[0]})</span></span>
+                            </div>
+                            ${columnaAlertaHTML}
+                        </div>`;
+                }
+            });
+
+            if(datosAgregados) {
+                historialAgrupado[fechaKey] = itemsDia;
+                localStorage.setItem('panHistorialAgrupado', JSON.stringify(historialAgrupado));
+                document.getElementById('contenido-resumen').innerHTML = resumenHTML;
+                document.getElementById('resumen-guardado').classList.remove('hidden');
+                alert("✅ Guardado correctamente en el historial");
+                cargarHistorial();
+            } else {
+                alert("⚠️ Ingresa valores en al menos un producto antes de guardar.");
+            }
+        }
+
+        function cargarHistorial() {
+            const historialAgrupado = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
+            const container = document.getElementById('historial-lista');
+            container.innerHTML = '';
+            const fechas = Object.keys(historialAgrupado).sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join('')));
+
+            if (fechas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-white/50">
+                        <i class="fas fa-folder-open text-3xl mb-2 text-slate-300 block"></i>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Sin registros guardados</p>
+                    </div>`;
+                return;
+            }
+
+            fechas.forEach((fecha) => {
+                const registros = historialAgrupado[fecha];
+                const itemFicha = document.createElement('div');
+                itemFicha.className = "bg-white border border-slate-200 rounded-2xl p-4 shadow-sm text-xs space-y-3 relative group";
+                let filasProductosHTML = '';
+                registros.forEach(r => {
+                    let bloqueAlertaHTML = r.esExceso ? 
+                        `<div class="bg-rose-50 border border-rose-100 p-2 rounded-xl flex flex-col justify-center min-h-[50px]"><span class="block text-rose-600 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">⚠️ Demasiado</span><strong class="text-rose-700 text-[10px] leading-tight">${r.desgloseExcesoTexto}</strong></div>` : 
+                        `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex flex-col justify-center items-center text-center min-h-[50px]"><span class="text-emerald-600 font-black text-sm"><i class="fas fa-check-circle"></i></span><span class="text-[8px] text-emerald-600 font-extrabold uppercase tracking-wider mt-0.5">Óptimo</span></div>`;
+
+                    filasProductosHTML += `
+                        <div class="border-b border-slate-100 pb-3 last:border-none last:pb-0 pt-3 first:pt-0">
+                            <div class="flex justify-between items-start mb-2 gap-2">
+                                <span class="font-extrabold text-slate-800 text-sm tracking-tight">${r.producto}</span>
+                                <span class="text-[9px] bg-slate-50 text-slate-400 font-bold border border-slate-200/60 px-2 py-0.5 rounded-lg uppercase tracking-wider">${r.etiquetaEmpaque || ''}</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2.5 text-[10px]">
+                                <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl flex flex-col justify-center min-h-[50px]">
+                                    <span class="block text-slate-400 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">Descongelar</span>
+                                    <div><strong class="text-slate-900 text-sm font-black">${r.sacarHoy || 0}</strong><span class="text-[9px] block text-amber-600 font-bold leading-none mt-0.5">${r.paquetesDesglose || '0 empaques'}</span></div>
+                                </div>
+                                <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl flex flex-col justify-center text-center min-h-[50px]"><span class="block text-slate-400 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">Total Esp.</span><strong class="text-slate-900 text-sm font-black block mt-0.5">${r.finalHoy}</strong></div>
+                                ${bloqueAlertaHTML}
+                            </div>
+                        </div>`;
+                });
+
+                itemFicha.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                        <div class="font-black text-slate-900 flex items-center gap-1.5 text-xs tracking-wider uppercase"><span class="inline-block w-2 h-2 rounded-full bg-slate-950"></span>FECHA: ${fecha}</div>
+                        <button onclick="eliminarFicha('${fecha}')" class="text-slate-300 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-xl transition-all"><i class="fas fa-trash-alt text-xs"></i></button>
+                    </div>
+                    <div class="space-y-1 divide-y divide-slate-50">${filasProductosHTML}</div>
+                `;
+                container.appendChild(itemFicha);
+            });
+        }
+
+        function eliminarFicha(fecha) {
+            if (confirm(`¿Estás seguro de borrar toda la ficha del día ${fecha}?`)) {
+                let h = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
+                delete h[fecha];
+                localStorage.setItem('panHistorialAgrupado', JSON.stringify(h));
+                cargarHistorial();
+            }
+        }
+
+        function exportarAPDF() {
+            const historialAgrupado = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
+            const fechas = Object.keys(historialAgrupado);
+            if (fechas.length === 0) return alert("No hay datos en el historial para exportar.");
+            const fechaActual = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            let filasHTML = '';
+            let idx = 0;
+
+            fechas.sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join(''))).forEach((fecha) => {
+                historialAgrupado[fecha].forEach((r) => {
+                    const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+                    let celdaAlerta = r.esExceso ? 
+                        `<div style="background-color: #fef2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #991b1b; font-weight: bold; font-size: 10px; display: block;">⚠️ Demasiado Pan</span><span style="color: #b91c1c; font-size: 9px; font-weight: 500; display: block; margin-top: 2px;">(${r.desgloseExcesoTexto})</span></div>` : 
+                        `<div style="background-color: #f0fdf4; border: 1px solid #dcfce7; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #166534; font-weight: bold; font-size: 11px;">✅ OK</span></div>`;
+
+                    filasHTML += `
+                        <tr style="background-color: ${bg}; text-align: center; font-size: 11px;">
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; font-weight: bold; color: #475569; font-size: 10.5px;">${fecha}</td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #0f172a;"><span style="font-weight: 800; font-size: 12px; block">${r.producto}</span><br><span style="font-size: 9px; color: #64748b; font-weight: 500; display: inline-block; margin-top: 2px;">${r.etiquetaEmpaque || ''}</span></td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #78350f; font-weight: bold; background-color: #fffbeb;"><strong style="font-size: 14px; color: #0f172a;">${r.sacarHoy || 0}</strong><span style="display: block; font-size: 9px; color: #d97706; font-weight: 600; margin-top: 2px;">${r.paquetesDesglose || ''}</span></td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 800; background-color: #f1f5f9; font-size: 14px;">${r.finalHoy || 0}</td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0;">${celdaAlerta}</td>
+                        </tr>`;
+                    idx++;
+                });
+            });
+
+            const ventanaReporte = window.open('', '_blank');
+            ventanaReporte.document.write(`<html><head><title>Reporte_Descongelado</title><style>body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #1e293b; background: #ffffff; }.header-container { border-bottom: 3px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; }th { background-color: #0f172a; color: #ffffff; padding: 14px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; border-none; }tr:last-child td { border-bottom: none; }@media print { @page { size: A4 landscape; margin: 10mm; } body { padding: 0; } }</style></head><body><div class="header-container"><div><h2 style="margin: 0; color: #0f172a; font-size: 26px; font-weight: 800; tracking-tight: -0.02em;">Reporte de Descongelado</h2></div><div style="text-align: right; font-size: 10px; color: #64748b; font-weight: 600;">Generado el: ${fechaActual}</div></div><table><thead><tr><th style="text-align:left; width: 14%; padding-left: 15px;">Fecha</th><th style="text-align:left; width: 26%;">Producto / Presentación</th><th style="width: 23%; background-color: #1e1b4b; color: #fcd34d;">A Descongelar</th><th style="width: 15%; background-color: #334155;">Total Esperado</th><th style="width: 22%;">Estado / Alerta</th></tr></thead><tbody>${filasHTML}</tbody></table><div style="margin-top: 30px; text-align: center; border-top: 1px dashed #e2e8f0; padding-top: 12px;"><p style="font-size: 9px; color: #94a3b8; font-weight: 500; margin: 0;">Sistema de Control de Inventario Automatizado • Respaldo de Registro Local</p></div></body></html>`);
+            ventanaReporte.document.close();
+        }
+
+        window.onload = () => {
+            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            generarCampos();
+            cargarHistorial();
+        };
+    </script>
+</body>
+</html>
