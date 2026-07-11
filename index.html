@@ -2,127 +2,173 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Pan a Descongelar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#78350f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Listado de pan</title>
+    
+    <!-- Enlace dinámico para el Manifest PWA -->
+    <link rel="manifest" id="manifest-placeholder">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Control Pan">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2921/2921829.png">
-
-    <link class="manifest" id="manifest-placeholder">
     <style>
         input[type="number"] { -webkit-appearance: none; -moz-appearance: textfield; }
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.015em; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.015em; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
+        
+        /* Animaciones suaves */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
     </style>
 </head>
-<body class="bg-[#f8fafc] min-h-screen text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
+<body class="bg-[#fdfbf7] min-h-screen text-stone-800 antialiased selection:bg-amber-500/20 pb-24 md:pb-8">
 
-    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm transition-all duration-300">
+    <!-- Cabecera Premium -->
+    <header class="bg-gradient-to-br from-amber-800 via-orange-900 to-stone-900 shadow-xl shadow-orange-900/20 sticky top-0 z-40 rounded-b-3xl md:rounded-none md:mb-8">
+        <div class="max-w-7xl mx-auto px-5 py-6 flex flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
-                <div class="bg-slate-900 text-white p-3.5 rounded-2xl text-2xl shadow-lg shadow-slate-900/10 flex items-center justify-center">
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-2xl text-3xl shadow-inner flex items-center justify-center">
                     🍞
                 </div>
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
-                        Control de Pan a Descongelar
+                    <h1 class="text-xl md:text-3xl font-black tracking-tight text-white drop-shadow-sm leading-none mb-1">
+                        Listado de pan
                     </h1>
+                    <p class="text-amber-200/80 text-[10px] md:text-xs font-bold tracking-widest uppercase">Gestión de Descongelado</p>
                 </div>
             </div>
-            <button onclick="guardarRegistro()" 
-                    class="w-full md:w-auto bg-slate-950 hover:bg-slate-800 active:scale-[0.98] transition-all text-white px-7 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-slate-950/10 text-sm tracking-wide">
-                <i class="fas fa-save text-base opacity-90"></i>
-                GUARDAR REGISTRO DIARIO
-            </button>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 shadow-sm">
-                    
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5 mb-6">
-                        <div class="flex items-center gap-3">
-                            <span class="text-slate-400 text-lg"><i class="fas fa-calculator"></i></span>
-                            <h2 class="text-xl font-bold text-slate-900">Calculadora Diaria</h2>
-                        </div>
-                        <div class="flex items-center bg-slate-50 border border-slate-200/60 px-4 py-2 rounded-2xl gap-3 w-full sm:w-auto shadow-inner">
-                            <label class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 whitespace-nowrap">Fecha de Trabajo:</label>
-                            <input type="date" id="fecha" class="w-full sm:w-auto bg-white px-3 py-1.5 rounded-xl border border-slate-200 font-bold text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all text-sm shadow-sm">
-                        </div>
-                    </div>
+            <!-- Botón de Instalación PWA (Oculto por defecto) -->
+            <button id="btn-instalar" onclick="instalarApp()" class="hidden bg-white/10 hover:bg-white/20 border border-white/30 text-white px-4 py-2.5 rounded-xl font-bold items-center justify-center gap-2 transition-all text-xs shadow-sm">
+                <i class="fas fa-download"></i> Instalar
+            </button>
 
-                    <div id="tabla-calculadora" class="space-y-5"></div>
+            <!-- Botón Guardar (Solo Desktop) -->
+            <button onclick="guardarRegistro()" class="hidden md:flex bg-amber-500 hover:bg-amber-400 active:scale-95 transition-all text-orange-950 px-7 py-3.5 rounded-2xl font-black items-center justify-center gap-2 shadow-lg shadow-amber-500/20 text-sm tracking-wide">
+                <i class="fas fa-save text-lg opacity-90"></i>
+                GUARDAR REGISTRO
+            </button>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-0 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        
+        <!-- COLUMNA IZQUIERDA: Calculadora -->
+        <div class="lg:col-span-2 space-y-6 fade-in">
+            <div class="glass-card rounded-[2rem] p-5 md:p-8 shadow-2xl shadow-stone-200/50 relative overflow-hidden">
+                <div class="absolute -top-20 -right-20 w-64 h-64 bg-amber-100 rounded-full blur-3xl opacity-50 -z-10"></div>
+                
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5 mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="text-amber-600 bg-amber-50 w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black shadow-sm"><i class="fas fa-calculator"></i></span>
+                        <h2 class="text-2xl font-black text-stone-800 tracking-tight">Calculadora Diaria</h2>
+                    </div>
+                    <div class="flex items-center bg-white border border-stone-200 px-4 py-2.5 rounded-2xl gap-3 w-full sm:w-auto shadow-sm focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100 transition-all">
+                        <i class="far fa-calendar-alt text-amber-500"></i>
+                        <input type="date" id="fecha" class="w-full sm:w-auto bg-transparent font-bold text-stone-800 focus:outline-none text-sm cursor-pointer">
+                    </div>
                 </div>
+
+                <div id="tabla-calculadora" class="space-y-6"></div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: Historial -->
+        <div class="space-y-6 lg:sticky lg:top-6 fade-in" style="animation-delay: 0.1s;">
+            
+            <div class="glass-card rounded-[2rem] p-6 shadow-2xl shadow-stone-200/50">
+                <div class="flex items-center justify-between mb-5 border-b border-stone-100 pb-4 gap-2">
+                    <div class="flex items-center gap-3">
+                        <span class="text-stone-500 bg-stone-100 w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black"><i class="fas fa-history"></i></span>
+                        <h2 class="text-xl font-black text-stone-800 tracking-tight">Historial</h2>
+                    </div>
+                    <button onclick="exportarAPDF()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-extrabold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95 border border-rose-100">
+                        <i class="fas fa-file-pdf"></i> Exportar
+                    </button>
+                </div>
+                <div id="historial-lista" class="space-y-4 max-h-[60vh] overflow-auto pr-2"></div>
             </div>
 
-            <div class="space-y-6 lg:sticky lg:top-6">
-                
-                <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-5 border-b border-slate-100 pb-4 gap-2">
-                        <div class="flex items-center gap-2.5">
-                            <span class="text-slate-400 text-base"><i class="fas fa-history"></i></span>
-                            <h2 class="text-lg font-bold text-slate-900">Historial Reciente</h2>
-                        </div>
-                        <button onclick="exportarAPDF()" class="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-md transition-all active:scale-95">
-                            <i class="fas fa-file-pdf text-red-400"></i> Exportar PDF
-                        </button>
-                    </div>
-                    <div id="historial-lista" class="space-y-4 max-h-[55vh] overflow-auto pr-1"></div>
-                </div>
-
-                <div id="resumen-guardado" class="hidden bg-emerald-50 border border-emerald-200 rounded-3xl p-6 shadow-sm shadow-emerald-950/5 animate-fadeIn">
-                    <h3 class="font-bold text-emerald-950 flex items-center gap-2 mb-4 text-sm">
-                        <i class="fas fa-check-circle text-emerald-600 text-lg"></i> Registro Guardado Correctamente
-                    </h3>
-                    <div id="contenido-resumen" class="space-y-2.5"></div>
-                </div>
-                
+            <div id="resumen-guardado" class="hidden bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-[2rem] p-6 shadow-xl shadow-emerald-600/20 transition-all duration-300">
+                <h3 class="font-black flex items-center gap-2 mb-4 text-sm tracking-wide">
+                    <i class="fas fa-check-circle text-emerald-100 text-xl"></i> ¡GUARDADO CON ÉXITO!
+                </h3>
+                <div id="contenido-resumen" class="space-y-2.5"></div>
             </div>
+            
         </div>
     </div>
 
+    <!-- Botón Flotante (Solo visible en Móvil) -->
+    <div class="fixed bottom-5 left-5 right-5 md:hidden z-50 fade-in">
+        <button onclick="guardarRegistro()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 active:from-amber-600 active:to-orange-600 text-orange-950 p-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 shadow-2xl shadow-orange-500/40 border border-amber-400">
+            <i class="fas fa-save text-xl"></i> GUARDAR REGISTRO
+        </button>
+    </div>
+
     <script>
-        // INYECCIÓN DINÁMICA DEL MANIFEST Y SERVICE WORKER AUTO-GENERADO
-        const manifestJson = {
-            "name": "Control de Pan",
-            "short_name": "Pan",
-            "start_url": window.location.href,
+        // ==========================================
+        // MAGIA PWA (APP INSTALABLE) EN UN SOLO ARCHIVO
+        // ==========================================
+        const manifestApp = {
+            "name": "Listado de pan",
+            "short_name": "Listado Pan",
+            "start_url": ".",
             "display": "standalone",
-            "background_color": "#f8fafc",
-            "theme_color": "#0f172a",
+            "background_color": "#fdfbf7",
+            "theme_color": "#78350f",
             "icons": [{
-                "src": "https://cdn-icons-png.flaticon.com/512/2921/2921829.png",
+                "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIj7wn42MPC90ZXh0Pjwvc3ZnPg==",
                 "sizes": "192x192",
-                "type": "image/png",
-                "purpose": "any maskable"
-            }, {
-                "src": "https://cdn-icons-png.flaticon.com/512/2921/2921829.png",
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "any maskable"
+                "type": "image/svg+xml"
             }]
         };
-        document.getElementById('manifest-placeholder').setAttribute('href', 'data:application/json;base64,' + btoa(JSON.stringify(manifestJson)));
+        const manifestBlob = new Blob([JSON.stringify(manifestApp)], {type: 'application/manifest+json'});
+        document.getElementById('manifest-placeholder').href = URL.createObjectURL(manifestBlob);
 
         if ('serviceWorker' in navigator) {
             const swCode = `
                 self.addEventListener('install', (e) => self.skipWaiting());
                 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-                self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+                self.addEventListener('fetch', (e) => {});
             `;
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Error', err));
+            const blob = new Blob([swCode], { type: 'text/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log('SW Error', err));
         }
 
+        let promptInstalacion;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            promptInstalacion = e;
+            document.getElementById('btn-instalar').classList.remove('hidden');
+            document.getElementById('btn-instalar').classList.add('flex');
+        });
+
+        function instalarApp() {
+            if (promptInstalacion) {
+                promptInstalacion.prompt();
+                promptInstalacion.userChoice.then((resultado) => {
+                    if (resultado.outcome === 'accepted') {
+                        document.getElementById('btn-instalar').classList.add('hidden');
+                    }
+                    promptInstalacion = null;
+                });
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DE LA APLICACIÓN (INTACTA)
+        // ==========================================
         let productos = [
             { id: "muffin", nombre: "PAN MUFFIN", porEmpaque: 84, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba 7 bolsas de 12 unidades", empaqueNombre: "jabas", tipoConvertidor: "bolsa", cantConvertidor: 12 },
             { id: "tortilla", nombre: "TORTILLA 8", porEmpaque: 12, meta: 0, inicial: 0, etiquetaEmpaque: "Bolsa 12 unidades", empaqueNombre: "bolsas", tipoConvertidor: "bolsa", cantConvertidor: 12 },
@@ -179,42 +225,43 @@
                     sacarHoy = empaquesNecesarios * prod.porEmpaque;
                     paquetesHoy = calcularPaquetes(sacarHoy, prod.porEmpaque, prod.empaqueNombre);
                     finalHoy = Math.max(0, prod.inicial + sacarHoy);
-                    advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-xs font-bold text-amber-400/90 mt-1">${paquetesHoy}</div>`;
+                    advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-[11px] font-bold text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-lg inline-block border border-white/10">${paquetesHoy}</div>`;
                 }
 
                 const div = document.createElement('div');
-                div.className = "border border-slate-200/90 bg-white rounded-2xl p-5 hover:border-slate-300 hover:shadow-md transition-all duration-200 group";
-                let textoBoton = prod.tipoConvertidor === "bolsa" ? `<i class="fas fa-calculator text-[10px]"></i> Convertir Bolsas` : `<i class="fas fa-box text-[10px]"></i> Convertir Jabas`;
+                div.className = "bg-white rounded-[1.5rem] p-5 md:p-6 border border-stone-200 shadow-md hover:shadow-xl transition-all duration-300 group";
+                let textoBoton = prod.tipoConvertidor === "bolsa" ? `<i class="fas fa-shopping-bag text-amber-600"></i> Bolsas` : `<i class="fas fa-box-open text-amber-600"></i> Jabas`;
 
                 div.innerHTML = `
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 mb-4 gap-2">
-                        <span class="font-extrabold text-slate-800 tracking-tight text-base group-hover:text-slate-900 transition-colors">${prod.nombre}</span>
-                        <span class="text-[10px] bg-slate-50 text-slate-500 font-bold px-3 py-1 rounded-xl border border-slate-200/50 uppercase tracking-wider">${prod.etiquetaEmpaque}</span>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-100 pb-4 mb-5 gap-3">
+                        <span class="font-black text-stone-800 tracking-tight text-lg">${prod.nombre}</span>
+                        <span class="text-[9px] bg-stone-100 text-stone-500 font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider">${prod.etiquetaEmpaque}</span>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-4">
                             <div>
-                                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5 pl-1">Cantidad Meta</label>
-                                <input type="number" id="meta-input-${prod.id}" value="${prod.meta}" oninput="actualizarValores(${index}, 'meta', this.value)" class="w-full text-lg font-bold bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:bg-white focus:border-slate-950 focus:ring-1 focus:ring-slate-955 focus:outline-none transition-all shadow-inner text-slate-800">
+                                <label class="block text-[10px] font-extrabold text-stone-400 uppercase tracking-widest mb-1.5 pl-1">Cantidad Meta</label>
+                                <input type="number" id="meta-input-${prod.id}" value="${prod.meta}" oninput="actualizarValores(${index}, 'meta', this.value)" onfocus="this.select()" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
                             </div>
-                            <div>
-                                <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5 pl-1">Inventario Inicial (Unidades)</label>
-                                <input type="number" id="inicial-input-${prod.id}" value="${prod.inicial}" oninput="actualizarValores(${index}, 'inicial', this.value)" class="w-full text-lg font-bold bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:bg-white focus:border-slate-950 focus:ring-1 focus:ring-slate-955 focus:outline-none transition-all shadow-inner text-slate-800">
+                            <div class="relative">
+                                <label class="block text-[10px] font-extrabold text-stone-400 uppercase tracking-widest mb-1.5 pl-1">Me Quedó (Unidades)</label>
+                                <input type="number" id="inicial-input-${prod.id}" value="${prod.inicial}" oninput="actualizarValores(${index}, 'inicial', this.value)" onfocus="this.select()" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
+                                <button onclick="ejecutarConvertidor(${index})" class="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[10px] bg-white text-stone-700 font-extrabold py-1 px-3 rounded-full border border-stone-200 shadow-sm hover:bg-stone-50 transition-all flex items-center justify-center gap-1.5 active:scale-95 whitespace-nowrap">
+                                    + ${textoBoton}
+                                </button>
                             </div>
-                            <button onclick="ejecutarConvertidor(${index})" class="w-full text-[11px] bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-2.5 px-3 rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-1.5 active:scale-[0.99]">
-                                ${textoBoton}
-                            </button>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
-                            <div class="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md flex flex-col justify-center items-center min-h-[120px]">
-                                <div class="text-slate-400 font-extrabold text-[10px] uppercase tracking-wider mb-1">A Descongelar</div>
-                                <div id="sacarHoy-val-${prod.id}" class="text-3xl font-black tracking-tight text-white">${sacarHoy}</div>
-                                <div id="wrapper-advertencia-${prod.id}" class="w-full">${advertenciaHTML}</div>
+                        <div class="grid grid-cols-2 gap-3 h-full mt-3 md:mt-0">
+                            <div class="bg-gradient-to-br from-amber-900 to-stone-900 text-white rounded-2xl p-4 text-center shadow-lg flex flex-col justify-center items-center relative overflow-hidden">
+                                <i class="fas fa-snowflake absolute -right-3 -top-3 text-5xl opacity-10"></i>
+                                <div class="text-amber-200/60 font-extrabold text-[9px] uppercase tracking-widest mb-1 relative z-10">A Descongelar</div>
+                                <div id="sacarHoy-val-${prod.id}" class="text-4xl font-black tracking-tighter text-white relative z-10">${sacarHoy}</div>
+                                <div id="wrapper-advertencia-${prod.id}" class="w-full relative z-10 mt-1">${advertenciaHTML}</div>
                             </div>
-                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center flex flex-col justify-center items-center min-h-[120px] shadow-inner">
-                                <div class="text-slate-400 font-extrabold text-[10px] uppercase tracking-wider mb-1">Total Esperado</div>
-                                <div id="final-val-${prod.id}" class="text-3xl font-black tracking-tight text-slate-900">${finalHoy}</div>
-                                <div class="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-wider">Unidades Finales</div>
+                            <div class="bg-stone-50 border border-stone-200 rounded-2xl p-4 text-center flex flex-col justify-center items-center shadow-inner">
+                                <div class="text-stone-400 font-extrabold text-[9px] uppercase tracking-widest mb-1">Total Esperado</div>
+                                <div id="final-val-${prod.id}" class="text-4xl font-black tracking-tighter text-stone-800">${finalHoy}</div>
+                                <div class="text-[10px] text-stone-400 font-bold mt-1 uppercase tracking-wider bg-white px-2 py-0.5 rounded border border-stone-100">Unds</div>
                             </div>
                         </div>
                     </div>
@@ -256,7 +303,7 @@
                 sacarHoy = empaquesNecesarios * prod.porEmpaque;
                 paquetesHoy = calcularPaquetes(sacarHoy, prod.porEmpaque, prod.empaqueNombre);
                 finalHoy = Math.max(0, prod.inicial + sacarHoy);
-                advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-xs font-bold text-amber-400/90 mt-1">${paquetesHoy}</div>`;
+                advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-[11px] font-bold text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-lg inline-block border border-white/10">${paquetesHoy}</div>`;
             }
 
             document.getElementById(`sacarHoy-val-${prod.id}`).innerText = sacarHoy;
@@ -266,13 +313,13 @@
 
         function guardarRegistro() {
             const fechaInput = document.getElementById('fecha').value;
-            if (!fechaInput) return alert("Por favor, ingresa una fecha válida");
+            if (!fechaInput) return alert("Por favor, ingresa una fecha válida primero.");
             const fechaObj = new Date(fechaInput + "T12:00:00");
             const fechaKey = `${String(fechaObj.getDate()).padStart(2,'0')}/${String(fechaObj.getMonth()+1).padStart(2,'0')}/${fechaObj.getFullYear()}`;
             let historialAgrupado = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
             let itemsDia = [];
             let datosAgregados = false;
-            let resumenHTML = `<p class="font-extrabold text-emerald-950 text-xs border-b border-emerald-200 pb-2.5 mb-3 uppercase tracking-wider flex items-center gap-1.5"><i class="far fa-calendar-alt"></i> TRABAJO DEL: ${fechaKey}</p>`;
+            let resumenHTML = `<p class="font-black text-emerald-100 text-[10px] border-b border-emerald-400/30 pb-2.5 mb-3 uppercase tracking-widest flex items-center gap-1.5"><i class="far fa-calendar-alt"></i> RESUMEN DEL: ${fechaKey}</p>`;
 
             productos.forEach(prod => {
                 if(prod.meta > 0 || prod.inicial > 0) {
@@ -301,19 +348,19 @@
                         esExceso: esExceso, desgloseExcesoTexto: desgloseExcesoTexto
                     });
                     datosAgregados = true;
+                    
                     const columnaAlertaHTML = esExceso ? 
-                        `<div class="text-right"><span class="text-rose-600 font-extrabold block text-xs">⚠️ Exceso</span><span class="text-[9px] text-rose-500 font-bold block leading-tight mt-0.5">${desgloseExcesoTexto}</span></div>` : 
-                        `<div class="text-right"><span class="text-emerald-600 font-extrabold block text-xs">✅ OK</span><span class="text-[9px] text-emerald-500 font-medium block mt-0.5">Inventario ideal</span></div>`;
+                        `<div class="text-right"><span class="bg-rose-500/20 text-white px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-wider border border-rose-400/30">⚠️ Exceso</span><span class="text-[9px] text-rose-200 font-bold block leading-tight mt-1">${desgloseExcesoTexto}</span></div>` : 
+                        `<div class="text-right"><span class="bg-emerald-800 text-emerald-100 px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-wider border border-emerald-700">✅ OK</span></div>`;
 
                     resumenHTML += `
-                        <div class="bg-white/90 p-3 rounded-xl border border-emerald-200 mb-2 shadow-sm grid grid-cols-3 gap-2 text-xs items-center">
+                        <div class="bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-white/20 mb-2 grid grid-cols-3 gap-2 text-xs items-center">
                             <div>
-                                <div class="font-bold text-slate-900">${prod.nombre}</div>
-                                <div class="text-[9px] text-slate-400 font-bold tracking-tight mt-0.5">${prod.etiquetaEmpaque}</div>
+                                <div class="font-black text-white text-[11px]">${prod.nombre}</div>
                             </div>
-                            <div class="text-center bg-slate-50 border border-slate-100 p-1.5 rounded-lg shadow-inner">
-                                <span class="text-slate-400 font-extrabold block text-[8px] uppercase tracking-wider">Sacar</span>
-                                <span class="font-black text-slate-800">${sacarHoy} <span class="text-[9px] font-medium text-slate-400">(${paquetesDesglose.split(' ')[0]})</span></span>
+                            <div class="text-center bg-black/20 border border-white/10 p-1.5 rounded-lg">
+                                <span class="text-emerald-100/70 font-bold block text-[8px] uppercase tracking-widest">Descongelar</span>
+                                <span class="font-black text-white text-sm">${sacarHoy}</span>
                             </div>
                             ${columnaAlertaHTML}
                         </div>`;
@@ -325,8 +372,8 @@
                 localStorage.setItem('panHistorialAgrupado', JSON.stringify(historialAgrupado));
                 document.getElementById('contenido-resumen').innerHTML = resumenHTML;
                 document.getElementById('resumen-guardado').classList.remove('hidden');
-                alert("✅ Guardado correctamente en el historial");
                 cargarHistorial();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 alert("⚠️ Ingresa valores en al menos un producto antes de guardar.");
             }
@@ -340,9 +387,9 @@
 
             if (fechas.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-12 text-slate-400 border border-dashed border-slate-200 rounded-2xl bg-white/50">
-                        <i class="fas fa-folder-open text-3xl mb-2 text-slate-300 block"></i>
-                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Sin registros guardados</p>
+                    <div class="text-center py-12 text-stone-400 border-2 border-dashed border-stone-200 rounded-3xl bg-white/50">
+                        <i class="fas fa-inbox text-4xl mb-3 block opacity-50"></i>
+                        <p class="text-[10px] font-black uppercase tracking-widest">Sin registros guardados</p>
                     </div>`;
                 return;
             }
@@ -350,43 +397,46 @@
             fechas.forEach((fecha) => {
                 const registros = historialAgrupado[fecha];
                 const itemFicha = document.createElement('div');
-                itemFicha.className = "bg-white border border-slate-200 rounded-2xl p-4 shadow-sm text-xs space-y-3 relative group";
+                itemFicha.className = "bg-white border border-stone-200 rounded-[1.5rem] p-4 shadow-sm text-xs space-y-3 relative group hover:shadow-md transition-all";
                 let filasProductosHTML = '';
                 registros.forEach(r => {
                     let bloqueAlertaHTML = r.esExceso ? 
-                        `<div class="bg-rose-50 border border-rose-100 p-2 rounded-xl flex flex-col justify-center min-h-[50px]"><span class="block text-rose-600 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">⚠️ Demasiado</span><strong class="text-rose-700 text-[10px] leading-tight">${r.desgloseExcesoTexto}</strong></div>` : 
-                        `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex flex-col justify-center items-center text-center min-h-[50px]"><span class="text-emerald-600 font-black text-sm"><i class="fas fa-check-circle"></i></span><span class="text-[8px] text-emerald-600 font-extrabold uppercase tracking-wider mt-0.5">Óptimo</span></div>`;
+                        `<div class="bg-rose-50 border border-rose-100 p-2 rounded-xl flex flex-col justify-center text-center"><span class="block text-rose-600 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">⚠️ Demasiado</span><strong class="text-rose-700 text-[10px] leading-tight">${r.desgloseExcesoTexto}</strong></div>` : 
+                        `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex flex-col justify-center items-center text-center"><span class="text-emerald-600 font-black text-sm"><i class="fas fa-check-circle"></i></span><span class="text-[8px] text-emerald-600 font-extrabold uppercase tracking-widest mt-0.5">Óptimo</span></div>`;
 
                     filasProductosHTML += `
-                        <div class="border-b border-slate-100 pb-3 last:border-none last:pb-0 pt-3 first:pt-0">
-                            <div class="flex justify-between items-start mb-2 gap-2">
-                                <span class="font-extrabold text-slate-800 text-sm tracking-tight">${r.producto}</span>
-                                <span class="text-[9px] bg-slate-50 text-slate-400 font-bold border border-slate-200/60 px-2 py-0.5 rounded-lg uppercase tracking-wider">${r.etiquetaEmpaque || ''}</span>
+                        <div class="border-b border-stone-100 pb-3 last:border-none last:pb-0 pt-3 first:pt-0">
+                            <div class="flex justify-between items-start mb-2.5 gap-2">
+                                <span class="font-black text-stone-800 text-sm tracking-tight">${r.producto}</span>
+                                <span class="text-[8px] bg-stone-100 text-stone-500 font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-stone-200">${r.etiquetaEmpaque || ''}</span>
                             </div>
                             <div class="grid grid-cols-3 gap-2.5 text-[10px]">
-                                <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl flex flex-col justify-center min-h-[50px]">
-                                    <span class="block text-slate-400 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">Descongelar</span>
-                                    <div><strong class="text-slate-900 text-sm font-black">${r.sacarHoy || 0}</strong><span class="text-[9px] block text-amber-600 font-bold leading-none mt-0.5">${r.paquetesDesglose || '0 empaques'}</span></div>
+                                <div class="bg-stone-50 border border-stone-200 p-2 rounded-xl flex flex-col justify-center text-center shadow-inner">
+                                    <span class="block text-stone-400 font-extrabold uppercase text-[8px] tracking-widest mb-0.5">Descongelar</span>
+                                    <div><strong class="text-stone-900 text-[15px] font-black">${r.sacarHoy || 0}</strong><span class="text-[9px] block text-amber-600 font-bold leading-none mt-0.5">${r.paquetesDesglose || '0 empaques'}</span></div>
                                 </div>
-                                <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl flex flex-col justify-center text-center min-h-[50px]"><span class="block text-slate-400 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">Total Esp.</span><strong class="text-slate-900 text-sm font-black block mt-0.5">${r.finalHoy}</strong></div>
+                                <div class="bg-stone-50 border border-stone-200 p-2 rounded-xl flex flex-col justify-center text-center shadow-inner">
+                                    <span class="block text-stone-400 font-extrabold uppercase text-[8px] tracking-widest mb-0.5">Total Esp.</span>
+                                    <strong class="text-stone-900 text-[15px] font-black block mt-0.5">${r.finalHoy}</strong>
+                                </div>
                                 ${bloqueAlertaHTML}
                             </div>
                         </div>`;
                 });
 
                 itemFicha.innerHTML = `
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
-                        <div class="font-black text-slate-900 flex items-center gap-1.5 text-xs tracking-wider uppercase"><span class="inline-block w-2 h-2 rounded-full bg-slate-950"></span>FECHA: ${fecha}</div>
-                        <button onclick="eliminarFicha('${fecha}')" class="text-slate-300 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-xl transition-all"><i class="fas fa-trash-alt text-xs"></i></button>
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <div class="font-black text-stone-900 flex items-center gap-2 text-xs tracking-wider uppercase bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100"><i class="far fa-calendar-check text-amber-600"></i> ${fecha}</div>
+                        <button onclick="eliminarFicha('${fecha}')" class="text-stone-300 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-xl transition-all border border-transparent hover:border-rose-100"><i class="fas fa-trash-alt text-sm"></i></button>
                     </div>
-                    <div class="space-y-1 divide-y divide-slate-50">${filasProductosHTML}</div>
+                    <div class="space-y-1 divide-y divide-stone-50">${filasProductosHTML}</div>
                 `;
                 container.appendChild(itemFicha);
             });
         }
 
         function eliminarFicha(fecha) {
-            if (confirm(`¿Estás seguro de borrar toda la ficha del día ${fecha}?`)) {
+            if (confirm(`⚠️ ¿Estás seguro de borrar todo el registro del día ${fecha}?`)) {
                 let h = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
                 delete h[fecha];
                 localStorage.setItem('panHistorialAgrupado', JSON.stringify(h));
@@ -404,25 +454,25 @@
 
             fechas.sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join(''))).forEach((fecha) => {
                 historialAgrupado[fecha].forEach((r) => {
-                    const bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+                    const bg = idx % 2 === 0 ? '#ffffff' : '#fdfbf7';
                     let celdaAlerta = r.esExceso ? 
-                        `<div style="background-color: #fef2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #991b1b; font-weight: bold; font-size: 10px; display: block;">⚠️ Demasiado Pan</span><span style="color: #b91c1c; font-size: 9px; font-weight: 500; display: block; margin-top: 2px;">(${r.desgloseExcesoTexto})</span></div>` : 
+                        `<div style="background-color: #fff1f2; border: 1px solid #ffe4e6; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #be123c; font-weight: bold; font-size: 10px; display: block;">⚠️ Demasiado Pan</span><span style="color: #e11d48; font-size: 9px; font-weight: 500; display: block; margin-top: 2px;">(${r.desgloseExcesoTexto})</span></div>` : 
                         `<div style="background-color: #f0fdf4; border: 1px solid #dcfce7; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #166534; font-weight: bold; font-size: 11px;">✅ OK</span></div>`;
 
                     filasHTML += `
                         <tr style="background-color: ${bg}; text-align: center; font-size: 11px;">
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; font-weight: bold; color: #475569; font-size: 10.5px;">${fecha}</td>
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; color: #0f172a;"><span style="font-weight: 800; font-size: 12px; block">${r.producto}</span><br><span style="font-size: 9px; color: #64748b; font-weight: 500; display: inline-block; margin-top: 2px;">${r.etiquetaEmpaque || ''}</span></td>
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #78350f; font-weight: bold; background-color: #fffbeb;"><strong style="font-size: 14px; color: #0f172a;">${r.sacarHoy || 0}</strong><span style="display: block; font-size: 9px; color: #d97706; font-weight: 600; margin-top: 2px;">${r.paquetesDesglose || ''}</span></td>
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 800; background-color: #f1f5f9; font-size: 14px;">${r.finalHoy || 0}</td>
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0;">${celdaAlerta}</td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: bold; color: #57534e; font-size: 10.5px;">${fecha}</td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; color: #1c1917;"><span style="font-weight: 800; font-size: 12px; block">${r.producto}</span><br><span style="font-size: 9px; color: #78716c; font-weight: 500; display: inline-block; margin-top: 2px;">${r.etiquetaEmpaque || ''}</span></td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; color: #78350f; font-weight: bold; background-color: #fffbeb;"><strong style="font-size: 14px; color: #1c1917;">${r.sacarHoy || 0}</strong><span style="display: block; font-size: 9px; color: #d97706; font-weight: 600; margin-top: 2px;">${r.paquetesDesglose || ''}</span></td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; color: #1c1917; font-weight: 800; background-color: #f5f5f4; font-size: 14px;">${r.finalHoy || 0}</td>
+                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb;">${celdaAlerta}</td>
                         </tr>`;
                     idx++;
                 });
             });
 
             const ventanaReporte = window.open('', '_blank');
-            ventanaReporte.document.write(`<html><head><title>Reporte_Descongelado</title><style>body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #1e293b; background: #ffffff; }.header-container { border-bottom: 3px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; }th { background-color: #0f172a; color: #ffffff; padding: 14px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; border-none; }tr:last-child td { border-bottom: none; }@media print { @page { size: A4 landscape; margin: 10mm; } body { padding: 0; } }</style></head><body><div class="header-container"><div><h2 style="margin: 0; color: #0f172a; font-size: 26px; font-weight: 800; tracking-tight: -0.02em;">Reporte de Descongelado</h2></div><div style="text-align: right; font-size: 10px; color: #64748b; font-weight: 600;">Generado el: ${fechaActual}</div></div><table><thead><tr><th style="text-align:left; width: 14%; padding-left: 15px;">Fecha</th><th style="text-align:left; width: 26%;">Producto / Presentación</th><th style="width: 23%; background-color: #1e1b4b; color: #fcd34d;">A Descongelar</th><th style="width: 15%; background-color: #334155;">Total Esperado</th><th style="width: 22%;">Estado / Alerta</th></tr></thead><tbody>${filasHTML}</tbody></table><div style="margin-top: 30px; text-align: center; border-top: 1px dashed #e2e8f0; padding-top: 12px;"><p style="font-size: 9px; color: #94a3b8; font-weight: 500; margin: 0;">Sistema de Control de Inventario Automatizado • Respaldo de Registro Local</p></div></body></html>`);
+            ventanaReporte.document.write(`<html><head><title>Reporte_Descongelado</title><style>body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #1c1917; background: #ffffff; }.header-container { border-bottom: 3px solid #1c1917; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; border: 1px solid #d6d3d1; border-radius: 12px; overflow: hidden; }th { background-color: #1c1917; color: #ffffff; padding: 14px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; border-none; }tr:last-child td { border-bottom: none; }@media print { @page { size: A4 landscape; margin: 10mm; } body { padding: 0; } }</style></head><body><div class="header-container"><div><h2 style="margin: 0; color: #1c1917; font-size: 26px; font-weight: 800; tracking-tight: -0.02em;">Listado de pan</h2></div><div style="text-align: right; font-size: 10px; color: #78716c; font-weight: 600;">Generado el: ${fechaActual}</div></div><table><thead><tr><th style="text-align:left; width: 14%; padding-left: 15px;">Fecha</th><th style="text-align:left; width: 26%;">Producto / Presentación</th><th style="width: 23%; background-color: #78350f; color: #fde68a;">A Descongelar</th><th style="width: 15%; background-color: #44403c;">Total Esperado</th><th style="width: 22%;">Estado / Alerta</th></tr></thead><tbody>${filasHTML}</tbody></table><div style="margin-top: 30px; text-align: center; border-top: 1px dashed #e7e5e4; padding-top: 12px;"><p style="font-size: 9px; color: #a8a29e; font-weight: 500; margin: 0;">Gestión de Descongelado • Respaldo de Registro Local</p></div></body></html>`);
             ventanaReporte.document.close();
         }
 
