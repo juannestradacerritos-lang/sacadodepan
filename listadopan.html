@@ -75,7 +75,7 @@
                     </div>
                     <div class="flex items-center bg-white border border-stone-200 px-4 py-2.5 rounded-2xl gap-3 w-full sm:w-auto shadow-sm focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100 transition-all">
                         <i class="far fa-calendar-alt text-amber-500"></i>
-                        <input type="date" id="fecha" class="w-full sm:w-auto bg-transparent font-bold text-stone-800 focus:outline-none text-sm cursor-pointer">
+                        <input type="date" id="fecha" onchange="cambioDeFecha()" class="w-full sm:w-auto bg-transparent font-bold text-stone-800 focus:outline-none text-sm cursor-pointer">
                     </div>
                 </div>
 
@@ -128,7 +128,6 @@
             "background_color": "#fdfbf7",
             "theme_color": "#78350f",
             "icons": [{
-                // ¡AQUÍ ESTÁ LA CORRECCIÓN DEL ÍCONO DE PAN DE MOLDE!
                 "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48dGV4dCB5PSIuOWVtIiBmb250LXNpemU9IjkwIj7wn42ePC90ZXh0Pjwvc3ZnPg==",
                 "sizes": "192x192",
                 "type": "image/svg+xml"
@@ -207,10 +206,31 @@
             return `${textoEmpaque} y ${unidadesSueltas} unds`;
         }
 
+        function cambioDeFecha() {
+            // Al cambiar la fecha, borramos las casillas manuales
+            productos.forEach(p => {
+                p.inicial = 0;
+                p.meta = 0;
+            });
+            generarCampos(); 
+            document.getElementById('resumen-guardado').classList.add('hidden');
+        }
+
         function generarCampos() {
             const container = document.getElementById('tabla-calculadora');
             container.innerHTML = '';
+            
+            const fechaInputVal = document.getElementById('fecha').value;
+            // Recuperar el borrador específico del día si existe
+            let borrador = JSON.parse(localStorage.getItem('listadoPanBorrador_' + fechaInputVal));
+
             productos.forEach((prod, index) => {
+                // Aplicar datos del borrador si estuviste editando hoy
+                if (borrador && borrador[index]) {
+                    prod.meta = borrador[index].meta;
+                    prod.inicial = borrador[index].inicial;
+                }
+
                 let sacarHoy = 0;
                 let paquetesHoy = calcularPaquetes(0, prod.porEmpaque, prod.empaqueNombre);
                 let finalHoy = prod.inicial;
@@ -242,11 +262,13 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-[10px] font-extrabold text-stone-400 uppercase tracking-widest mb-1.5 pl-1">Cantidad Meta</label>
-                                <input type="number" id="meta-input-${prod.id}" value="${prod.meta}" oninput="actualizarValores(${index}, 'meta', this.value)" onfocus="this.select()" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
+                                <!-- Se aplicó el parche anti-resaltado: onfocus="if(this.value==='0')this.value=''" onblur="..." -->
+                                <input type="number" id="meta-input-${prod.id}" value="${prod.meta}" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value==='')this.value='0'; actualizarValores(${index}, 'meta', this.value)" oninput="actualizarValores(${index}, 'meta', this.value)" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
                             </div>
                             <div class="relative">
                                 <label class="block text-[10px] font-extrabold text-stone-400 uppercase tracking-widest mb-1.5 pl-1">Me Quedó (Unidades)</label>
-                                <input type="number" id="inicial-input-${prod.id}" value="${prod.inicial}" oninput="actualizarValores(${index}, 'inicial', this.value)" onfocus="this.select()" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
+                                <!-- Se aplicó el parche anti-resaltado: onfocus="if(this.value==='0')this.value=''" onblur="..." -->
+                                <input type="number" id="inicial-input-${prod.id}" value="${prod.inicial}" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value==='')this.value='0'; actualizarValores(${index}, 'inicial', this.value)" oninput="actualizarValores(${index}, 'inicial', this.value)" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
                                 <button onclick="ejecutarConvertidor(${index})" class="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[10px] bg-white text-stone-700 font-extrabold py-1 px-3 rounded-full border border-stone-200 shadow-sm hover:bg-stone-50 transition-all flex items-center justify-center gap-1.5 active:scale-95 whitespace-nowrap">
                                     + ${textoBoton}
                                 </button>
@@ -310,6 +332,12 @@
             document.getElementById(`sacarHoy-val-${prod.id}`).innerText = sacarHoy;
             document.getElementById(`wrapper-advertencia-${prod.id}`).innerHTML = advertenciaHTML;
             document.getElementById(`final-val-${prod.id}`).innerText = finalHoy;
+            
+            // Auto-guardado en borrador silencioso al editar un campo
+            const fechaInputVal = document.getElementById('fecha').value;
+            if (fechaInputVal) {
+                localStorage.setItem('listadoPanBorrador_' + fechaInputVal, JSON.stringify(productos));
+            }
         }
 
         function guardarRegistro() {
@@ -445,35 +473,80 @@
             }
         }
 
+        // ==========================================
+        // EXPORTACIÓN A PDF AGRUPADA POR DÍAS (FICHAS)
+        // ==========================================
         function exportarAPDF() {
-            const historialAgrupado = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
-            const fechas = Object.keys(historialAgrupado);
+            const h = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
+            const fechas = Object.keys(h);
             if (fechas.length === 0) return alert("No hay datos en el historial para exportar.");
             const fechaActual = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-            let filasHTML = '';
-            let idx = 0;
+            
+            let contenidoPDF = '';
 
             fechas.sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join(''))).forEach((fecha) => {
-                historialAgrupado[fecha].forEach((r) => {
-                    const bg = idx % 2 === 0 ? '#ffffff' : '#fdfbf7';
+                contenidoPDF += `
+                <div style="margin-bottom: 25px; border: 1px solid #d6d3d1; border-radius: 12px; overflow: hidden; page-break-inside: avoid; font-family: sans-serif;">
+                    <div style="background-color: #78350f; color: white; padding: 10px 15px; font-weight: bold; font-size: 14px;">
+                        🗓️ TRABAJO DEL DÍA: ${fecha}
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 11px;">
+                        <thead>
+                            <tr>
+                                <th style="background:#1c1917; color:white; padding:12px 10px; text-align:left; width: 35%;">Producto / Presentación</th>
+                                <th style="background:#1c1917; color:#fde68a; padding:12px 10px; width: 25%;">A Descongelar</th>
+                                <th style="background:#1c1917; color:white; padding:12px 10px; width: 20%;">Total Esperado</th>
+                                <th style="background:#1c1917; color:white; padding:12px 10px; width: 20%;">Estado / Alerta</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                let c = 0;
+                h[fecha].forEach((r) => {
+                    const bg = c % 2 === 0 ? '#ffffff' : '#fdfbf7';
                     let celdaAlerta = r.esExceso ? 
                         `<div style="background-color: #fff1f2; border: 1px solid #ffe4e6; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #be123c; font-weight: bold; font-size: 10px; display: block;">⚠️ Demasiado Pan</span><span style="color: #e11d48; font-size: 9px; font-weight: 500; display: block; margin-top: 2px;">(${r.desgloseExcesoTexto})</span></div>` : 
                         `<div style="background-color: #f0fdf4; border: 1px solid #dcfce7; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #166534; font-weight: bold; font-size: 11px;">✅ OK</span></div>`;
 
-                    filasHTML += `
+                    contenidoPDF += `
                         <tr style="background-color: ${bg}; text-align: center; font-size: 11px;">
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; font-weight: bold; color: #57534e; font-size: 10.5px;">${fecha}</td>
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; color: #1c1917;"><span style="font-weight: 800; font-size: 12px; block">${r.producto}</span><br><span style="font-size: 9px; color: #78716c; font-weight: 500; display: inline-block; margin-top: 2px;">${r.etiquetaEmpaque || ''}</span></td>
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; color: #78350f; font-weight: bold; background-color: #fffbeb;"><strong style="font-size: 14px; color: #1c1917;">${r.sacarHoy || 0}</strong><span style="display: block; font-size: 9px; color: #d97706; font-weight: 600; margin-top: 2px;">${r.paquetesDesglose || ''}</span></td>
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb; color: #1c1917; font-weight: 800; background-color: #f5f5f4; font-size: 14px;">${r.finalHoy || 0}</td>
-                            <td style="padding: 12px 10px; border-bottom: 1px solid #e5e7eb;">${celdaAlerta}</td>
+                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; text-align: left; color: #1c1917;">
+                                <span style="font-weight: 800; font-size: 12px; display: block;">${r.producto}</span>
+                                <span style="font-size: 9px; color: #78716c; font-weight: 500; display: block; margin-top: 2px;">${r.etiquetaEmpaque || ''}</span>
+                            </td>
+                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #78350f; font-weight: bold; background-color: #fffbeb;">
+                                <strong style="font-size: 14px; color: #1c1917;">${r.sacarHoy || 0}</strong>
+                                <span style="display: block; font-size: 9px; color: #d97706; font-weight: 600; margin-top: 2px;">${r.paquetesDesglose || ''}</span>
+                            </td>
+                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #1c1917; font-weight: 800; background-color: #f5f5f4; font-size: 14px;">${r.finalHoy || 0}</td>
+                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb;">${celdaAlerta}</td>
                         </tr>`;
-                    idx++;
+                    c++;
                 });
+                contenidoPDF += `</tbody></table></div>`;
             });
 
             const ventanaReporte = window.open('', '_blank');
-            ventanaReporte.document.write(`<html><head><title>Reporte_Descongelado</title><style>body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #1c1917; background: #ffffff; }.header-container { border-bottom: 3px solid #1c1917; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; border: 1px solid #d6d3d1; border-radius: 12px; overflow: hidden; }th { background-color: #1c1917; color: #ffffff; padding: 14px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; border-none; }tr:last-child td { border-bottom: none; }@media print { @page { size: A4 landscape; margin: 10mm; } body { padding: 0; } }</style></head><body><div class="header-container"><div><h2 style="margin: 0; color: #1c1917; font-size: 26px; font-weight: 800; tracking-tight: -0.02em;">Listado de pan</h2></div><div style="text-align: right; font-size: 10px; color: #78716c; font-weight: 600;">Generado el: ${fechaActual}</div></div><table><thead><tr><th style="text-align:left; width: 14%; padding-left: 15px;">Fecha</th><th style="text-align:left; width: 26%;">Producto / Presentación</th><th style="width: 23%; background-color: #78350f; color: #fde68a;">A Descongelar</th><th style="width: 15%; background-color: #44403c;">Total Esperado</th><th style="width: 22%;">Estado / Alerta</th></tr></thead><tbody>${filasHTML}</tbody></table><div style="margin-top: 30px; text-align: center; border-top: 1px dashed #e7e5e4; padding-top: 12px;"><p style="font-size: 9px; color: #a8a29e; font-weight: 500; margin: 0;">Gestión de Descongelado • Respaldo de Registro Local</p></div></body></html>`);
+            ventanaReporte.document.write(`
+                <html><head><title>Reporte_Descongelado</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; color: #1c1917; background: #ffffff; }
+                    .header-container { border-bottom: 3px solid #1c1917; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+                    @media print { @page { size: A4 portrait; margin: 10mm; } body { padding: 0; } }
+                </style></head><body>
+                <div class="header-container">
+                    <div>
+                        <h2 style="margin: 0; color: #1c1917; font-size: 26px; font-weight: 800; letter-spacing: -0.02em;">Listado de pan</h2>
+                        <p style="margin:3px 0 0 0;font-size:12px;color:#78716c;font-weight:bold;">Reporte Histórico Agrupado por Día</p>
+                    </div>
+                    <div style="text-align: right; font-size: 10px; color: #78716c; font-weight: 600;">Generado el: ${fechaActual}</div>
+                </div>
+                ${contenidoPDF}
+                <div style="margin-top: 30px; text-align: center; border-top: 1px dashed #e7e5e4; padding-top: 12px;">
+                    <p style="font-size: 9px; color: #a8a29e; font-weight: 500; margin: 0;">Gestión de Descongelado • Respaldo de Registro Local</p>
+                </div>
+                <script>setTimeout(()=>window.print(),300);<\/script>
+                </body></html>
+            `);
             ventanaReporte.document.close();
         }
 
