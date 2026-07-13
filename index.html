@@ -48,12 +48,10 @@
                 </div>
             </div>
             
-            <!-- Botón de Instalación PWA (Oculto por defecto) -->
             <button id="btn-instalar" onclick="instalarApp()" class="hidden bg-white/10 hover:bg-white/20 border border-white/30 text-white px-4 py-2.5 rounded-xl font-bold items-center justify-center gap-2 transition-all text-xs shadow-sm">
                 <i class="fas fa-download"></i> Instalar
             </button>
 
-            <!-- Botón Guardar (Solo Desktop) -->
             <button onclick="guardarRegistro()" class="hidden md:flex bg-amber-500 hover:bg-amber-400 active:scale-95 transition-all text-orange-950 px-7 py-3.5 rounded-2xl font-black items-center justify-center gap-2 shadow-lg shadow-amber-500/20 text-sm tracking-wide">
                 <i class="fas fa-save text-lg opacity-90"></i>
                 GUARDAR REGISTRO
@@ -118,7 +116,7 @@
 
     <script>
         // ==========================================
-        // MAGIA PWA (APP INSTALABLE) EN UN SOLO ARCHIVO
+        // MAGIA PWA
         // ==========================================
         const manifestApp = {
             "name": "Listado de pan",
@@ -137,102 +135,134 @@
         document.getElementById('manifest-placeholder').href = URL.createObjectURL(manifestBlob);
 
         if ('serviceWorker' in navigator) {
-            const swCode = `
-                self.addEventListener('install', (e) => self.skipWaiting());
-                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-                self.addEventListener('fetch', (e) => {});
-            `;
+            const swCode = `self.addEventListener('install', (e) => self.skipWaiting()); self.addEventListener('activate', (e) => e.waitUntil(clients.claim())); self.addEventListener('fetch', (e) => {});`;
             const blob = new Blob([swCode], { type: 'text/javascript' });
             navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log('SW Error', err));
         }
 
         let promptInstalacion;
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            promptInstalacion = e;
-            document.getElementById('btn-instalar').classList.remove('hidden');
-            document.getElementById('btn-instalar').classList.add('flex');
+            e.preventDefault(); promptInstalacion = e;
+            document.getElementById('btn-instalar').classList.remove('hidden'); document.getElementById('btn-instalar').classList.add('flex');
         });
 
         function instalarApp() {
             if (promptInstalacion) {
                 promptInstalacion.prompt();
                 promptInstalacion.userChoice.then((resultado) => {
-                    if (resultado.outcome === 'accepted') {
-                        document.getElementById('btn-instalar').classList.add('hidden');
-                    }
+                    if (resultado.outcome === 'accepted') document.getElementById('btn-instalar').classList.add('hidden');
                     promptInstalacion = null;
                 });
             }
         }
 
         // ==========================================
-        // LÓGICA DE LA APLICACIÓN
+        // LÓGICA DE PANES
         // ==========================================
         let productos = [
-            { id: "muffin", nombre: "PAN MUFFIN", porEmpaque: 84, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba 7 bolsas de 12 unidades", empaqueNombre: "jabas", tipoConvertidor: "bolsa", cantConvertidor: 12 },
-            { id: "tortilla", nombre: "TORTILLA 8", porEmpaque: 12, meta: 0, inicial: 0, etiquetaEmpaque: "Bolsa 12 unidades", empaqueNombre: "bolsas", tipoConvertidor: "bolsa", cantConvertidor: 12 },
-            { id: "regular", nombre: "PAN REGULAR", porEmpaque: 60, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 60 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "jaba", cantConvertidor: 30 },
-            { id: "cuarto", nombre: "PAN DE CUARTO", porEmpaque: 60, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 60 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "jaba", cantConvertidor: 30 },
-            { id: "bigmac", nombre: "PAN BIGMAC", porEmpaque: 30, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Individual 30 unidades", empaqueNombre: "jabas individuales", tipoConvertidor: "jaba", cantConvertidor: 30 },
-            { id: "magnifica", nombre: "PAN MAGNÍFICA DE RES", porEmpaque: 50, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 50 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "jaba", cantConvertidor: 25 },
-            { id: "artesanal", nombre: "PAN ARTESANAL", porEmpaque: 96, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 96 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "bolsa", cantConvertidor: 12 },
-            { id: "bollo", nombre: "PAN BOLLO", porEmpaque: 16, meta: 0, inicial: 0, etiquetaEmpaque: "Bolsa 16 unidades", empaqueNombre: "bolsas", tipoConvertidor: "bolsa", cantConvertidor: 16 },
-            { id: "papa", nombre: "PAN DE PAPA", porEmpaque: 60, meta: 0, inicial: 0, etiquetaEmpaque: "Jaba Doble 60 unidades", empaqueNombre: "jabas dobles", tipoConvertidor: "jaba", cantConvertidor: 30 }
+            { id: "muffin", nombre: "PAN MUFFIN", porEmpaque: 84, meta: 0, inicial: 0, esDoble: false, etiquetaEmpaque: "Jaba 7 bolsas de 12 uds", tipoConvertidor: "bolsa", cantConvertidor: 12 },
+            { id: "tortilla", nombre: "TORTILLA 8", porEmpaque: 12, meta: 0, inicial: 0, esDoble: false, etiquetaEmpaque: "Bolsa 12 unidades", tipoConvertidor: "bolsa", cantConvertidor: 12 },
+            { id: "regular", nombre: "PAN REGULAR", porEmpaque: 60, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 60 unidades", tipoConvertidor: "jaba", cantConvertidor: 30 },
+            { id: "cuarto", nombre: "PAN DE CUARTO", porEmpaque: 60, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 60 unidades", tipoConvertidor: "jaba", cantConvertidor: 30 },
+            { id: "bigmac", nombre: "PAN BIGMAC", porEmpaque: 30, meta: 0, inicial: 0, esDoble: false, etiquetaEmpaque: "Jaba Individual 30 unidades", tipoConvertidor: "jaba", cantConvertidor: 30 },
+            { id: "magnifica", nombre: "PAN MAGNÍFICA DE RES", porEmpaque: 50, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 50 unidades", tipoConvertidor: "jaba", cantConvertidor: 25 },
+            { id: "artesanal", nombre: "PAN ARTESANAL", porEmpaque: 96, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 96 unidades", tipoConvertidor: "bolsa", cantConvertidor: 12 },
+            { id: "bollo", nombre: "PAN BOLLO", porEmpaque: 16, meta: 0, inicial: 0, esDoble: false, etiquetaEmpaque: "Bolsa 16 unidades", tipoConvertidor: "bolsa", cantConvertidor: 16 },
+            { id: "papa", nombre: "PAN DE PAPA", porEmpaque: 60, meta: 0, inicial: 0, esDoble: true, etiquetaEmpaque: "Jaba Doble 60 unidades", tipoConvertidor: "jaba", cantConvertidor: 30 }
         ];
 
-        function calcularPaquetes(amount, porEmpaque, empaqueNombre) {
-            if (amount <= 0) return `0 ${empaqueNombre}`;
-            const paquetes = Math.ceil(amount / porEmpaque);
-            return `${paquetes} ${empaqueNombre}`;
+        function cambioDeFecha() {
+            productos.forEach(p => { p.inicial = 0; p.meta = 0; });
+            generarCampos(); 
+            document.getElementById('resumen-guardado').classList.add('hidden');
+        }
+
+        function calcularPaquetesObj(amount, prod) {
+            if (amount <= 0) {
+                const nombre = prod.esDoble ? "0 dobles" : (prod.id === "bigmac" ? "0 jabas" : `0 ${prod.tipoConvertidor === 'bolsa' ? 'bolsas' : 'jabas'}`);
+                return { ui: nombre, pdf: nombre };
+            }
+            
+            const empaques = Math.ceil(amount / prod.porEmpaque);
+            
+            if (prod.esDoble) {
+                const texto = empaques === 1 ? "1 doble" : `${empaques} dobles`;
+                return { 
+                    ui: `${texto} <span class="text-[9px] opacity-75 block mt-0.5 font-bold">(${empaques * 2} jabas en total)</span>`, 
+                    pdf: `${texto} (${empaques * 2} jabas)` 
+                };
+            }
+            
+            if (prod.id === "bigmac") return { ui: `${empaques} jabas`, pdf: `${empaques} jabas` };
+            
+            const nombre = empaques === 1 ? (prod.tipoConvertidor === "bolsa" ? "bolsa" : "jaba") : (prod.tipoConvertidor === "bolsa" ? "bolsas" : "jabas");
+            return { ui: `${empaques} ${nombre}`, pdf: `${empaques} ${nombre}` };
         }
 
         function obtenerTextoExceso(excesoUnidades, prod) {
             if (prod.id === "muffin") {
-                let unidadesRestantes = excesoUnidades;
-                const jabasCompletas = Math.floor(unidadesRestantes / 84);
-                unidadesRestantes %= 84;
-                const bolsasCompletas = Math.floor(unidadesRestantes / 12);
-                unidadesRestantes %= 12;
-                const textoJaba = jabasCompletas === 1 ? "1 jaba" : `${jabasCompletas} jabas`;
-                const textoBolsa = bolsasCompletas === 1 ? "1 bolsa" : `${bolsasCompletas} bolsas`;
-                return `${textoJaba}, ${textoBolsa} y ${unidadesRestantes} unds`;
+                let uR = excesoUnidades;
+                const jC = Math.floor(uR / 84); uR %= 84;
+                const bC = Math.floor(uR / 12); uR %= 12;
+                let partes = [];
+                if (jC > 0) partes.push(jC === 1 ? "1 jaba" : `${jC} jabas`);
+                if (bC > 0) partes.push(bC === 1 ? "1 bolsa" : `${bC} bolsas`);
+                if (uR > 0 || partes.length === 0) partes.push(`${uR} unds`);
+                return partes.join(", ");
             }
-            const nombreEmpaque = prod.tipoConvertidor === "bolsa" ? "bolsa" : "jaba";
-            const nombreEmpaquePlural = prod.tipoConvertidor === "bolsa" ? "bolsas" : "jabas";
-            const empaquesCompletos = Math.floor(excesoUnidades / prod.cantConvertidor);
-            const unidadesSueltas = excesoUnidades % prod.cantConvertidor;
-            const textoEmpaque = empaquesCompletos === 1 ? `1 ${nombreEmpaque}` : `${empaquesCompletos} ${nombreEmpaquePlural}`;
-            return `${textoEmpaque} y ${unidadesSueltas} unds`;
-        }
-
-        function cambioDeFecha() {
-            // Al cambiar la fecha, borramos las casillas manuales
-            productos.forEach(p => {
-                p.inicial = 0;
-                p.meta = 0;
-            });
-            generarCampos(); 
-            document.getElementById('resumen-guardado').classList.add('hidden');
+            
+            if (prod.esDoble) {
+                const dobles = Math.floor(excesoUnidades / prod.porEmpaque);
+                let resto = excesoUnidades % prod.porEmpaque;
+                
+                let partes = [];
+                if (dobles > 0) partes.push(dobles === 1 ? "1 doble" : `${dobles} dobles`);
+                
+                if (prod.tipoConvertidor === "bolsa") {
+                    const bolsas = Math.floor(resto / prod.cantConvertidor);
+                    const unds = resto % prod.cantConvertidor;
+                    if (bolsas > 0) partes.push(bolsas === 1 ? "1 bolsa" : `${bolsas} bolsas`);
+                    if (unds > 0 || (partes.length === 0 && dobles === 0)) partes.push(`${unds} unds`);
+                } else {
+                    const jabas = Math.floor(resto / prod.cantConvertidor);
+                    const unds = resto % prod.cantConvertidor;
+                    if (jabas > 0) partes.push(jabas === 1 ? "1 jaba" : `${jabas} jabas`);
+                    if (unds > 0 || (partes.length === 0 && dobles === 0)) partes.push(`${unds} unds`);
+                }
+                return partes.join(", ");
+            }
+            
+            if (prod.tipoConvertidor === "bolsa") {
+                const bolsas = Math.floor(excesoUnidades / prod.cantConvertidor);
+                const unds = excesoUnidades % prod.cantConvertidor;
+                let partes = [];
+                if (bolsas > 0) partes.push(bolsas === 1 ? "1 bolsa" : `${bolsas} bolsas`);
+                if (unds > 0 || partes.length === 0) partes.push(`${unds} unds`);
+                return partes.join(" y ");
+            } else {
+                const jabas = Math.floor(excesoUnidades / prod.porEmpaque);
+                const unds = excesoUnidades % prod.porEmpaque;
+                let partes = [];
+                if (jabas > 0) partes.push(jabas === 1 ? "1 jaba" : `${jabas} jabas`);
+                if (unds > 0 || partes.length === 0) partes.push(`${unds} unds`);
+                return partes.join(" y ");
+            }
         }
 
         function generarCampos() {
             const container = document.getElementById('tabla-calculadora');
             container.innerHTML = '';
-            
             const fechaInputVal = document.getElementById('fecha').value;
-            // Recuperar el borrador específico del día si existe
             let borrador = JSON.parse(localStorage.getItem('listadoPanBorrador_' + fechaInputVal));
 
             productos.forEach((prod, index) => {
-                // Aplicar datos del borrador si estuviste editando hoy
                 if (borrador && borrador[index]) {
                     prod.meta = borrador[index].meta;
                     prod.inicial = borrador[index].inicial;
                 }
 
                 let sacarHoy = 0;
-                let paquetesHoy = calcularPaquetes(0, prod.porEmpaque, prod.empaqueNombre);
+                let paquetesObj = calcularPaquetesObj(0, prod);
                 let finalHoy = prod.inicial;
                 let advertenciaHTML = "";
 
@@ -244,9 +274,9 @@
                     const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
                     const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
                     sacarHoy = empaquesNecesarios * prod.porEmpaque;
-                    paquetesHoy = calcularPaquetes(sacarHoy, prod.porEmpaque, prod.empaqueNombre);
+                    paquetesObj = calcularPaquetesObj(faltanteInicial, prod);
                     finalHoy = Math.max(0, prod.inicial + sacarHoy);
-                    advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-[11px] font-bold text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-lg inline-block border border-white/10">${paquetesHoy}</div>`;
+                    advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-[11px] font-bold text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-lg inline-block border border-white/10 leading-tight">${paquetesObj.ui}</div>`;
                 }
 
                 const div = document.createElement('div');
@@ -262,12 +292,10 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-[10px] font-extrabold text-stone-400 uppercase tracking-widest mb-1.5 pl-1">Cantidad Meta</label>
-                                <!-- Se aplicó el parche anti-resaltado: onfocus="if(this.value==='0')this.value=''" onblur="..." -->
                                 <input type="number" id="meta-input-${prod.id}" value="${prod.meta}" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value==='')this.value='0'; actualizarValores(${index}, 'meta', this.value)" oninput="actualizarValores(${index}, 'meta', this.value)" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
                             </div>
                             <div class="relative">
                                 <label class="block text-[10px] font-extrabold text-stone-400 uppercase tracking-widest mb-1.5 pl-1">Me Quedó (Unidades)</label>
-                                <!-- Se aplicó el parche anti-resaltado: onfocus="if(this.value==='0')this.value=''" onblur="..." -->
                                 <input type="number" id="inicial-input-${prod.id}" value="${prod.inicial}" onfocus="if(this.value==='0')this.value=''" onblur="if(this.value==='')this.value='0'; actualizarValores(${index}, 'inicial', this.value)" oninput="actualizarValores(${index}, 'inicial', this.value)" class="w-full text-xl font-black bg-stone-50 border border-stone-200 rounded-2xl px-4 py-3 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 focus:outline-none transition-all text-stone-800 text-center">
                                 <button onclick="ejecutarConvertidor(${index})" class="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[10px] bg-white text-stone-700 font-extrabold py-1 px-3 rounded-full border border-stone-200 shadow-sm hover:bg-stone-50 transition-all flex items-center justify-center gap-1.5 active:scale-95 whitespace-nowrap">
                                     + ${textoBoton}
@@ -297,6 +325,7 @@
             const prod = productos[index];
             const tipoText = prod.tipoConvertidor === "bolsa" ? "BOLSAS completas" : "JABAS completas";
             const empaqueText = prod.tipoConvertidor === "bolsa" ? "bolsa" : "jaba";
+            
             const cantEmpaques = prompt(`¿Cuántas ${tipoText} tienes de ${prod.nombre}? (Cada ${empaqueText} trae ${prod.cantConvertidor} unidades)`);
             if (cantEmpaques !== null && cantEmpaques !== "") {
                 const numEmpaques = parseInt(cantEmpaques) || 0;
@@ -312,7 +341,7 @@
             const prod = productos[index];
             prod[campo] = parseInt(valor) || 0;
             let sacarHoy = 0;
-            let paquetesHoy = calcularPaquetes(0, prod.porEmpaque, prod.empaqueNombre);
+            let paquetesObj = calcularPaquetesObj(0, prod);
             let finalHoy = prod.inicial;
             let advertenciaHTML = "";
 
@@ -324,16 +353,15 @@
                 const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
                 const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
                 sacarHoy = empaquesNecesarios * prod.porEmpaque;
-                paquetesHoy = calcularPaquetes(sacarHoy, prod.porEmpaque, prod.empaqueNombre);
+                paquetesObj = calcularPaquetesObj(faltanteInicial, prod);
                 finalHoy = Math.max(0, prod.inicial + sacarHoy);
-                advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-[11px] font-bold text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-lg inline-block border border-white/10">${paquetesHoy}</div>`;
+                advertenciaHTML = `<div id="paquetes-val-${prod.id}" class="text-[11px] font-bold text-amber-200 mt-1 bg-white/10 px-2 py-0.5 rounded-lg inline-block border border-white/10 leading-tight">${paquetesObj.ui}</div>`;
             }
 
             document.getElementById(`sacarHoy-val-${prod.id}`).innerText = sacarHoy;
             document.getElementById(`wrapper-advertencia-${prod.id}`).innerHTML = advertenciaHTML;
             document.getElementById(`final-val-${prod.id}`).innerText = finalHoy;
-            
-            // Auto-guardado en borrador silencioso al editar un campo
+
             const fechaInputVal = document.getElementById('fecha').value;
             if (fechaInputVal) {
                 localStorage.setItem('listadoPanBorrador_' + fechaInputVal, JSON.stringify(productos));
@@ -353,7 +381,7 @@
             productos.forEach(prod => {
                 if(prod.meta > 0 || prod.inicial > 0) {
                     let sacarHoy = 0;
-                    let paquetesDesglose = calcularPaquetes(0, prod.porEmpaque, prod.empaqueNombre);
+                    let paquetesObj = calcularPaquetesObj(0, prod);
                     let finalHoy = prod.inicial;
                     let esExceso = false;
                     let desgloseExcesoTexto = "";
@@ -362,25 +390,26 @@
                         esExceso = true;
                         const exceso = prod.inicial - prod.meta;
                         desgloseExcesoTexto = obtenerTextoExceso(exceso, prod);
-                        paquetesDesglose = `0 ${prod.empaqueNombre}`;
                     } else {
                         const faltanteInicial = Math.max(0, prod.meta - prod.inicial);
                         const empaquesNecesarios = Math.ceil(faltanteInicial / prod.porEmpaque);
                         sacarHoy = empaquesNecesarios * prod.porEmpaque;
-                        paquetesDesglose = calcularPaquetes(sacarHoy, prod.porEmpaque, prod.empaqueNombre);
+                        paquetesObj = calcularPaquetesObj(faltanteInicial, prod);
                         finalHoy = Math.max(0, prod.inicial + sacarHoy);
                     }
 
                     itemsDia.push({
                         producto: prod.nombre, meta: prod.meta, inicial: prod.inicial, sacarHoy: sacarHoy,
-                        paquetesDesglose: paquetesDesglose, finalHoy: finalHoy, etiquetaEmpaque: prod.etiquetaEmpaque,
+                        paquetesDesglose: paquetesObj.ui, finalHoy: finalHoy, etiquetaEmpaque: prod.etiquetaEmpaque,
                         esExceso: esExceso, desgloseExcesoTexto: desgloseExcesoTexto
                     });
                     datosAgregados = true;
                     
+                    const pdfDesglose = (paquetesObj.ui || '').replace(/<[^>]*>?/gm, '');
+
                     const columnaAlertaHTML = esExceso ? 
                         `<div class="text-right"><span class="bg-rose-500/20 text-white px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-wider border border-rose-400/30">⚠️ Exceso</span><span class="text-[9px] text-rose-200 font-bold block leading-tight mt-1">${desgloseExcesoTexto}</span></div>` : 
-                        `<div class="text-right"><span class="bg-emerald-800 text-emerald-100 px-2 py-0.5 rounded font-black text-[9px] uppercase tracking-wider border border-emerald-700">✅ OK</span></div>`;
+                        `<div class="text-center"><span class="bg-emerald-800 text-emerald-100 px-2 py-0.5 rounded font-black text-[8px] uppercase tracking-wider border border-emerald-700 block mb-0.5">A SACAR</span><span class="text-[9px] text-emerald-200 font-bold block leading-tight">${pdfDesglose}</span></div>`;
 
                     resumenHTML += `
                         <div class="bg-white/10 backdrop-blur-sm p-3 rounded-xl border border-white/20 mb-2 grid grid-cols-3 gap-2 text-xs items-center">
@@ -429,9 +458,12 @@
                 itemFicha.className = "bg-white border border-stone-200 rounded-[1.5rem] p-4 shadow-sm text-xs space-y-3 relative group hover:shadow-md transition-all";
                 let filasProductosHTML = '';
                 registros.forEach(r => {
+                    
+                    let pdfDesglose = (r.paquetesDesglose || '').replace(/<[^>]*>?/gm, '');
+
                     let bloqueAlertaHTML = r.esExceso ? 
                         `<div class="bg-rose-50 border border-rose-100 p-2 rounded-xl flex flex-col justify-center text-center"><span class="block text-rose-600 font-extrabold uppercase text-[8px] tracking-wider mb-0.5">⚠️ Demasiado</span><strong class="text-rose-700 text-[10px] leading-tight">${r.desgloseExcesoTexto}</strong></div>` : 
-                        `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex flex-col justify-center items-center text-center"><span class="text-emerald-600 font-black text-sm"><i class="fas fa-check-circle"></i></span><span class="text-[8px] text-emerald-600 font-extrabold uppercase tracking-widest mt-0.5">Óptimo</span></div>`;
+                        `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded-xl flex flex-col justify-center items-center text-center"><span class="block text-emerald-600/70 font-extrabold uppercase text-[7px] tracking-widest mb-0.5">A SACAR</span><strong class="text-emerald-800 text-[10px] font-black leading-tight">${pdfDesglose}</strong></div>`;
 
                     filasProductosHTML += `
                         <div class="border-b border-stone-100 pb-3 last:border-none last:pb-0 pt-3 first:pt-0">
@@ -442,7 +474,7 @@
                             <div class="grid grid-cols-3 gap-2.5 text-[10px]">
                                 <div class="bg-stone-50 border border-stone-200 p-2 rounded-xl flex flex-col justify-center text-center shadow-inner">
                                     <span class="block text-stone-400 font-extrabold uppercase text-[8px] tracking-widest mb-0.5">Descongelar</span>
-                                    <div><strong class="text-stone-900 text-[15px] font-black">${r.sacarHoy || 0}</strong><span class="text-[9px] block text-amber-600 font-bold leading-none mt-0.5">${r.paquetesDesglose || '0 empaques'}</span></div>
+                                    <div><strong class="text-stone-900 text-[15px] font-black">${r.sacarHoy || 0}</strong><span class="text-[8px] block text-stone-400 font-bold leading-none mt-0.5">unidades</span></div>
                                 </div>
                                 <div class="bg-stone-50 border border-stone-200 p-2 rounded-xl flex flex-col justify-center text-center shadow-inner">
                                     <span class="block text-stone-400 font-extrabold uppercase text-[8px] tracking-widest mb-0.5">Total Esp.</span>
@@ -473,12 +505,9 @@
             }
         }
 
-        // ==========================================
-        // EXPORTACIÓN A PDF AGRUPADA POR DÍAS (FICHAS)
-        // ==========================================
         function exportarAPDF() {
-            const h = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
-            const fechas = Object.keys(h);
+            const historialAgrupado = JSON.parse(localStorage.getItem('panHistorialAgrupado')) || {};
+            const fechas = Object.keys(historialAgrupado);
             if (fechas.length === 0) return alert("No hay datos en el historial para exportar.");
             const fechaActual = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             
@@ -493,19 +522,22 @@
                     <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 11px;">
                         <thead>
                             <tr>
-                                <th style="background:#1c1917; color:white; padding:12px 10px; text-align:left; width: 35%;">Producto / Presentación</th>
-                                <th style="background:#1c1917; color:#fde68a; padding:12px 10px; width: 25%;">A Descongelar</th>
-                                <th style="background:#1c1917; color:white; padding:12px 10px; width: 20%;">Total Esperado</th>
+                                <th style="background:#1c1917; color:white; padding:12px 10px; text-align:left; width: 28%;">Producto / Presentación</th>
+                                <th style="background:#1c1917; color:#fde68a; padding:12px 10px; width: 15%;">A Descongelar</th>
+                                <th style="background:#1c1917; color:white; padding:12px 10px; width: 15%;">Total Esperado</th>
+                                <th style="background:#1c1917; color:#a7f3d0; padding:12px 10px; width: 22%;">A Sacar</th>
                                 <th style="background:#1c1917; color:white; padding:12px 10px; width: 20%;">Estado / Alerta</th>
                             </tr>
                         </thead>
                         <tbody>`;
                 let c = 0;
-                h[fecha].forEach((r) => {
+                historialAgrupado[fecha].forEach((r) => {
                     const bg = c % 2 === 0 ? '#ffffff' : '#fdfbf7';
                     let celdaAlerta = r.esExceso ? 
                         `<div style="background-color: #fff1f2; border: 1px solid #ffe4e6; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #be123c; font-weight: bold; font-size: 10px; display: block;">⚠️ Demasiado Pan</span><span style="color: #e11d48; font-size: 9px; font-weight: 500; display: block; margin-top: 2px;">(${r.desgloseExcesoTexto})</span></div>` : 
                         `<div style="background-color: #f0fdf4; border: 1px solid #dcfce7; border-radius: 8px; padding: 6px; display: inline-block; width: 90%;"><span style="color: #166534; font-weight: bold; font-size: 11px;">✅ OK</span></div>`;
+
+                    const pdfDesglose = (r.paquetesDesglose || '').replace(/<[^>]*>?/gm, '');
 
                     contenidoPDF += `
                         <tr style="background-color: ${bg}; text-align: center; font-size: 11px;">
@@ -515,10 +547,17 @@
                             </td>
                             <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #78350f; font-weight: bold; background-color: #fffbeb;">
                                 <strong style="font-size: 14px; color: #1c1917;">${r.sacarHoy || 0}</strong>
-                                <span style="display: block; font-size: 9px; color: #d97706; font-weight: 600; margin-top: 2px;">${r.paquetesDesglose || ''}</span>
+                                <span style="display: block; font-size: 9px; color: #78716c; font-weight: 600; margin-top: 2px;">unidades</span>
                             </td>
-                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #1c1917; font-weight: 800; background-color: #f5f5f4; font-size: 14px;">${r.finalHoy || 0}</td>
-                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb;">${celdaAlerta}</td>
+                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #1c1917; font-weight: 800; background-color: #f5f5f4; font-size: 14px;">
+                                ${r.finalHoy || 0}
+                            </td>
+                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb; color: #065f46; font-weight: 800; background-color: #ecfdf5;">
+                                ${pdfDesglose}
+                            </td>
+                            <td style="padding: 12px 10px; border-top: 1px solid #e5e7eb;">
+                                ${celdaAlerta}
+                            </td>
                         </tr>`;
                     c++;
                 });
